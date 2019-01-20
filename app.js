@@ -1,23 +1,31 @@
 var express = require("express");
 var cors = require("cors");
-var firebase = require("firebase-admin");
 
-var serviceAccount = require("./serviceAccountKey.json");
+// Firebase App is always required and must be first
+var firebase = require("firebase/app");
+
+// Add additional services that you want to use
+require("firebase/auth");
+require("firebase/database");
+//require("firebase/firestore");
+//require("firebase/messaging");
+//require("firebase/functions");
+
 
 firebase.initializeApp({
-  credential: firebase.credential.cert(serviceAccount),
-  databaseURL: "https://app-assinaturas.firebaseio.com"
+  apiKey: "AIzaSyBRuykbZ50T0JdUWFOwBrQj9HfC5VcRd7c",
+  authDomain: "app-assinaturas.firebaseapp.com",
+  databaseURL: "https://app-assinaturas.firebaseio.com",
+  projectId: "app-assinaturas",
+  storageBucket: "app-assinaturas.appspot.com",
+  messagingSenderId: "567957840223"
 });
 
 var db = firebase.database();
-var ref = db.ref("restricted_access/database");
-ref.once("value", function(snapshot) {
-  console.log(snapshot.val());
-});
+var auth = firebase.auth();
 
 var app = express();
 var bodyParser = require("body-parser");
-var usersRef = ref.child("users");
 
 app.use(cors());
 
@@ -38,35 +46,48 @@ app.get("/", function(request, response) {
   response.send("Servidor no ar");
 });
 
-app.get("/users", function(request, response) {
-  var ref = db.ref("restricted_access/database");
-  ref.once("value", function(snapshot) {
-    response.json(snapshot.val());
+//signup
+app.post("/api/signup", function(request, response) {
+  console.log(request.query.username);
+  console.log(request.query.password);
+  auth.createUserWithEmailAndPassword(request.query.username, request.query.password).then(
+    function(sucess) {
+      response.json(sucess);
+    } 
+  )
+  .catch(function(error) {
+    response.status(400).send({error: error.code, msg: error.message});
   });
 });
 
-app.post("/users", function(request, response) {
-  usersRef.set({
-    aline: {
-      username: "aline",
-      full_name: "Aline Chaves",
-      password: "abc123"
-    }
+//login
+app.post("/api/signin", function(request, response) {
+  auth.signInWithEmailAndPassword(request.query.username, request.query.password).then(
+    function(sucess) {
+      response.json(sucess);
+    } 
+  )
+  .catch(function(error) {
+    response.status(401).send({error: error.code, msg: error.message});
   });
-
-  response.json("OK");
 });
 
-app.post("/users2", function(request, response) {
-  usersRef.push({
-    brubertolini: {
-      username: "brubertolini",
-      full_name: "Bruna Bertolini",
-      password: "abc123"
-    }
-  });
 
-  response.json("OK");
+//Adicionar assinatura
+app.post("/api/my-signatures/:userId", function(request, response) {
+  var signature = {
+    'data': '20/11/2019',
+    'servico': 'Youtbe',
+    'tempo': '1 mês'
+  }
+  db.ref('user/3Of94aVO9vMBys2Gz0NWE1fFywX2').push(
+    signature
+  ).then(function(sucess) {
+    response.json(sucess);
+  })
+  .catch(function(error) {
+    response.status(500).send({error: error.code, msg: error.message});
+  });
 });
 
 app.listen(3200, function() {

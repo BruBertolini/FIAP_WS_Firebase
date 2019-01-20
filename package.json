@@ -22,6 +22,6 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-load": "^1.1.16",
-    "firebase-admin": "^5.12.0"
+    "firebase": "^5.8.0"
   }
 }
