@@ -11,7 +11,6 @@ require("firebase/database");
 //require("firebase/messaging");
 //require("firebase/functions");
 
-
 firebase.initializeApp({
   apiKey: "AIzaSyBRuykbZ50T0JdUWFOwBrQj9HfC5VcRd7c",
   authDomain: "app-assinaturas.firebaseapp.com",
@@ -50,45 +49,101 @@ app.get("/", function(request, response) {
 app.post("/api/signup", function(request, response) {
   console.log(request.query.username);
   console.log(request.query.password);
-  auth.createUserWithEmailAndPassword(request.query.username, request.query.password).then(
-    function(sucess) {
+  auth
+    .createUserWithEmailAndPassword(
+      request.query.username,
+      request.query.password
+    )
+    .then(function(sucess) {
       response.json(sucess);
-    } 
-  )
-  .catch(function(error) {
-    response.status(400).send({error: error.code, msg: error.message});
-  });
+    })
+    .catch(function(error) {
+      response.status(400).send({ error: error.code, msg: error.message });
+    });
 });
 
 //login
 app.post("/api/signin", function(request, response) {
-  auth.signInWithEmailAndPassword(request.query.username, request.query.password).then(
-    function(sucess) {
+  auth
+    .signInWithEmailAndPassword(request.query.username, request.query.password)
+    .then(function(sucess) {
       response.json(sucess);
-    } 
-  )
-  .catch(function(error) {
-    response.status(401).send({error: error.code, msg: error.message});
-  });
+    })
+    .catch(function(error) {
+      response.status(401).send({ error: error.code, msg: error.message });
+    });
 });
-
 
 //Adicionar assinatura
 app.post("/api/my-signatures/:userId", function(request, response) {
+ 
+  console.log(request.body);
+
   var signature = {
-    'data': '20/11/2019',
-    'servico': 'Youtbe',
-    'tempo': '1 mês'
-  }
-  db.ref('user/3Of94aVO9vMBys2Gz0NWE1fFywX2').push(
-    signature
-  ).then(function(sucess) {
-    response.json(sucess);
-  })
-  .catch(function(error) {
-    response.status(500).send({error: error.code, msg: error.message});
-  });
+    data: request.body.data,
+    servico: request.body.servico,
+    tempo: request.body.tempo
+  };
+
+  var  userId = request.params.userId;
+
+  db.ref("user/" + userId )
+    .push(signature)
+    .then(function(sucess) {
+      response.json(sucess);
+    })
+    .catch(function(error) {
+      response.status(500).send({ error: error.code, msg: error.message });
+    });
 });
+
+//Recuperar lista de assinaturas
+app.get("/api/my-signatures/:userId", function(request, response) {
+
+  var  userId = request.params.userId;
+
+  db.ref("user/" + userId).on(
+    "value",
+    function(snapshot) {
+      console.log(snapshot.val());
+      response.json(snapshot.val());
+    },
+    function(errorObject) {
+      console.log("The read failed: " + errorObject.code);
+    }
+  );
+});
+
+//Atualizar assinatura
+app.put("/api/my-signatures/:userId/:itemId", function(request, response) {
+
+  var  userId = request.params.userId;
+  var  itemId = request.params.itemId;
+  
+  db.ref('user/' + userId +'/' + itemId).update(
+    {
+      data: request.body.data,
+      servico: request.body.servico,
+      tempo: request.body.tempo
+    },
+    function(snapshot) {
+      response.json('OK');
+    }
+  );
+
+ 
+});
+
+//Atualizar assinatura
+app.delete("/api/my-signatures/:userId/:itemId", function(request, response) {
+
+  var  userId = request.params.userId;
+  var  itemId = request.params.itemId;
+  
+  //implementar delete
+ 
+});
+
 
 app.listen(3200, function() {
   console.log("ok");
