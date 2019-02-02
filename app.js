@@ -163,6 +163,6 @@ app.get("/api/my-signatures/:userId/:itemId", function(request, response) {
 
 });
 
-app.listen(3200, function() {
-  console.log("ok");
+app.listen( process.env.PORT || 8081 , function() {
+  console.log("Servidor rodando");
 });
