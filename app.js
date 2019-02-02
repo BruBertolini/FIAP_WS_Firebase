@@ -76,7 +76,6 @@ app.post("/api/signin", function(request, response) {
 
 //Adicionar assinatura
 app.post("/api/my-signatures/:userId", function(request, response) {
- 
   console.log(request.body);
 
   var signature = {
@@ -85,9 +84,11 @@ app.post("/api/my-signatures/:userId", function(request, response) {
     tempo: request.body.tempo
   };
 
-  var  userId = request.params.userId;
+  var userId = request.params.userId;
 
-  db.ref("user/" + userId )
+  db.ref()
+    .child("user")
+    .child(userId)
     .push(signature)
     .then(function(sucess) {
       response.json(sucess);
@@ -99,10 +100,9 @@ app.post("/api/my-signatures/:userId", function(request, response) {
 
 //Recuperar lista de assinaturas
 app.get("/api/my-signatures/:userId", function(request, response) {
+  var userId = request.params.userId;
 
-  var  userId = request.params.userId;
-
-  db.ref("user/" + userId).on(
+  db.ref("user/" + userId).once(
     "value",
     function(snapshot) {
       console.log(snapshot.val());
@@ -116,34 +116,52 @@ app.get("/api/my-signatures/:userId", function(request, response) {
 
 //Atualizar assinatura
 app.put("/api/my-signatures/:userId/:itemId", function(request, response) {
+  var userId = request.params.userId;
+  var itemId = request.params.itemId;
 
-  var  userId = request.params.userId;
-  var  itemId = request.params.itemId;
-  
-  db.ref('user/' + userId +'/' + itemId).update(
+  db.ref("user/" + userId + "/" + itemId).update(
     {
       data: request.body.data,
       servico: request.body.servico,
       tempo: request.body.tempo
     },
     function(snapshot) {
-      response.json('OK');
+      response.json("OK");
     }
   );
-
- 
 });
 
 //Atualizar assinatura
 app.delete("/api/my-signatures/:userId/:itemId", function(request, response) {
+  var userId = request.params.userId;
+  var itemId = request.params.itemId;
 
-  var  userId = request.params.userId;
-  var  itemId = request.params.itemId;
-  
-  //implementar delete
- 
+  db.ref()
+    .child("user")
+    .child(userId)
+    .child(itemId)
+    .remove(function(snapshot) {
+      response.json("OK");
+    });
+
 });
 
+app.get("/api/my-signatures/:userId/:itemId", function(request, response) {
+  var userId = request.params.userId;
+  var itemId = request.params.itemId;
+
+  db.ref("user/" + userId + '/' + itemId).once(
+    "value",
+    function(snapshot) {
+      console.log(snapshot.val());
+      response.json(snapshot.val());
+    },
+    function(errorObject) {
+      console.log("The read failed: " + errorObject.code);
+    }
+  );
+
+});
 
 app.listen(3200, function() {
   console.log("ok");
