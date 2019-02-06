@@ -55,7 +55,7 @@ app.post("/api/signup", function(request, response) {
       request.query.password
     )
     .then(function(sucess) {
-      response.json(sucess);
+      response.json(sucess.user);
     })
     .catch(function(error) {
       response.status(400).send({ error: error.code, msg: error.message });
@@ -67,7 +67,7 @@ app.post("/api/signin", function(request, response) {
   auth
     .signInWithEmailAndPassword(request.query.username, request.query.password)
     .then(function(sucess) {
-      response.json(sucess);
+      response.json(sucess.user);
     })
     .catch(function(error) {
       response.status(401).send({ error: error.code, msg: error.message });
@@ -105,8 +105,16 @@ app.get("/api/my-signatures/:userId", function(request, response) {
   db.ref("user/" + userId).once(
     "value",
     function(snapshot) {
-      console.log(snapshot.val());
-      response.json(snapshot.val());
+      var data = [];
+
+      snapshot.forEach(
+          signature => {
+            data.push(signature.val())
+          }
+      );
+
+        console.log(data);
+        response.json(data);
     },
     function(errorObject) {
       console.log("The read failed: " + errorObject.code);
