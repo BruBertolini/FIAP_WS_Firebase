@@ -150,11 +150,9 @@ app.delete("/api/my-signatures/:userId/:itemId", function(request, response) {
   var userId = request.params.userId;
   var itemId = request.params.itemId;
 
-  db.ref()
-    .child("user")
-    .child(userId)
-    .child(itemId)
+  db.ref("user/" + userId + "/" + itemId)
     .remove(function(snapshot) {
+      console.log(snapshot);
       response.json("OK");
     });
 
