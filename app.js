@@ -109,7 +109,13 @@ app.get("/api/my-signatures/:userId", function(request, response) {
 
       snapshot.forEach(
           signature => {
-            data.push(signature.val())
+            var item = {
+              key: signature.key,
+              data: signature.val().data,
+              servico: signature.val().servico,
+              tempo: signature.val().tempo
+            }
+            data.push (item);
           }
       );
 
